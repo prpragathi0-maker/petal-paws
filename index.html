@@ -1,0 +1,395 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petal Paws — Virtual Pet</title>
+<style>
+:root {
+  --pink:#ff8eb5; --purple:#a994f5; --cream:#fff8f1;
+  --ink:#55445f; --mint:#bcebd9; --card:#ffffffdf;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:"Trebuchet MS",system-ui,sans-serif;
+  color:var(--ink); background:linear-gradient(145deg,#fff0f6,#eee9ff,#e7fbf4);
+  min-height:100vh;
+}
+button{font:inherit;cursor:pointer;border:0;transition:.18s}
+button:hover{transform:translateY(-2px);filter:brightness(1.03)}
+button:active{transform:scale(.97)}
+.app{max-width:1080px;margin:auto;padding:20px 15px 35px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.logo{font-size:clamp(22px,5vw,34px);font-weight:1000;letter-spacing:-1px}
+.logo span{color:#ef70a4}
+.subtitle{font-size:12px;opacity:.7;margin-top:3px}
+.wallet{display:flex;gap:8px;flex-wrap:wrap}
+.pill{background:white;border:1px solid #f2d8e7;padding:10px 14px;border-radius:20px;font-weight:900;box-shadow:0 4px 12px #b28bb31c}
+.layout{display:grid;grid-template-columns:1.12fr .88fr;gap:17px}
+.card{background:var(--card);border:1px solid #fff;border-radius:25px;padding:18px;box-shadow:0 10px 30px #8d6b9c16;backdrop-filter:blur(8px)}
+.room{
+  position:relative;overflow:hidden;min-height:360px;
+  background:linear-gradient(#ffe6f0 0 60%,#edc8df 60% 64%,#f8d9bb 64%);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+}
+.window{position:absolute;top:20px;left:22px;width:100px;height:118px;border:7px solid white;border-radius:16px;background:linear-gradient(#bce9ff,#fff4c8);box-shadow:0 4px 10px #aa8caa20}
+.window:before{content:"";position:absolute;left:43px;top:0;height:100%;width:5px;background:white}
+.window:after{content:"";position:absolute;left:0;top:52px;height:5px;width:100%;background:white}
+.sun{position:absolute;right:26px;top:23px;font-size:30px}
+.shelf{position:absolute;right:15px;top:94px;font-size:30px}
+.plant{position:absolute;left:18px;bottom:25px;font-size:34px}
+.room-label{position:absolute;top:15px;right:15px;background:#fff9;padding:7px 12px;border-radius:15px;font-size:12px;font-weight:bold}
+.pet-shadow{position:absolute;bottom:54px;width:180px;height:35px;background:#b988b74d;border-radius:50%;filter:blur(6px)}
+.pet{
+  z-index:2;font-size:clamp(112px,20vw,165px);line-height:1.25;
+  filter:drop-shadow(0 10px 6px #8c617b32);
+  animation:bob 2.4s ease-in-out infinite;user-select:none;
+}
+.pet.happy{animation:happy .5s ease-in-out 2}
+@keyframes bob{50%{transform:translateY(-7px) rotate(1deg)}}
+@keyframes happy{50%{transform:translateY(-22px) rotate(-7deg)}}
+.pet-name{font-size:21px;font-weight:1000;z-index:3}
+.pet-mood{font-size:13px;margin-top:3px;z-index:3}
+.room-floor{position:absolute;bottom:10px;right:17px;font-size:29px}
+.xp-wrap{margin-top:14px}
+.xp-top{display:flex;justify-content:space-between;font-size:12px;font-weight:900;margin-bottom:6px}
+.track{height:10px;border-radius:20px;background:#eee2f1;overflow:hidden}
+.fill{height:100%;width:0;background:linear-gradient(90deg,#ff9cbd,#ae9bff);border-radius:20px;transition:width .3s}
+.section-title{font-size:17px;font-weight:1000;margin:0 0 13px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{background:#fff;border-radius:16px;padding:11px}
+.stat-top{display:flex;justify-content:space-between;gap:5px;font-size:12px;font-weight:900;margin-bottom:8px}
+.stat .track{height:8px}
+.stat .fill{background:linear-gradient(90deg,#ffb5ca,#c3a8ff)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.action{padding:14px 8px;border-radius:17px;color:#60455f;font-weight:900;box-shadow:0 4px 0 #d9c3e6;background:#fff;font-size:14px}
+.action .emoji{display:block;font-size:27px;margin-bottom:5px}
+.action.feed{background:#ffe2ed}.action.bath{background:#dcf4ff}
+.action.play{background:#e6e1ff}.action.sleep{background:#fff0c9}
+.action:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}
+.tab{flex:1;min-width:70px;padding:10px 7px;border-radius:13px;background:#f3edf9;font-weight:900;font-size:12px;color:var(--ink)}
+.tab.active{background:#a894ef;color:white;box-shadow:0 4px 0 #8774d2}
+.panel{display:none}.panel.active{display:block}
+.items{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{border:2px solid #f0e4f4;background:white;border-radius:17px;padding:12px 5px;text-align:center;color:var(--ink)}
+.item.selected{border-color:#f28cb4;background:#fff0f6}
+.item .big{font-size:31px;display:block;margin-bottom:6px}
+.item strong{display:block;font-size:13px}
+.item small{display:block;color:#8a7890;margin:5px 0;font-size:11px}
+.item .buy{display:block;font-size:11px;font-weight:900;color:#c75a91}
+.primary{width:100%;padding:13px;border-radius:15px;background:linear-gradient(100deg,#ff8fb7,#b49bff);color:white;font-weight:1000;margin-top:12px;box-shadow:0 4px 0 #d5b5dc}
+.secondary{padding:10px 14px;border-radius:13px;background:#f1eaff;color:#6d58a1;font-weight:900}
+.notice{background:#fff4d9;border-radius:14px;padding:12px;font-size:12px;line-height:1.5;margin-top:13px}
+.daily{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f2ecff;padding:12px;border-radius:16px;margin-top:15px;font-size:12px}
+.daily button{padding:10px 12px;border-radius:12px;background:#9d87ee;color:white;font-weight:900;white-space:nowrap}
+.daily button:disabled{background:#c8bedb}
+footer{text-align:center;font-size:12px;opacity:.65;margin-top:18px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);background:#594565;color:white;padding:12px 18px;border-radius:18px;opacity:0;pointer-events:none;transition:.25s;z-index:10;max-width:90%;text-align:center;font-weight:bold}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.sparkle{position:absolute;z-index:4;pointer-events:none;font-size:24px;animation:pop 1s forwards}
+@keyframes pop{to{transform:translateY(-90px) scale(1.5);opacity:0}}
+@media(max-width:720px){
+ .app{padding:13px 10px 25px}
+ .layout{grid-template-columns:1fr}
+ .room{min-height:330px}
+ .card{padding:15px;border-radius:21px}
+ .pet{font-size:135px}
+ .window{width:80px;height:100px}
+ .shelf{font-size:25px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div>
+  <div class="logo">🌸 Petal <span>Paws</span></div>
+  <div class="subtitle">A little pet, a whole lot of love ♡</div>
+ </div>
+ <div class="wallet">
+  <div class="pill">🪙 <span id="coins">100</span></div>
+  <div class="pill">⭐ Lv. <span id="level">1</span></div>
+ </div>
+</header>
+
+<div class="layout">
+ <section>
+  <div class="card room" id="room">
+   <div class="window"></div><div class="sun">☀️</div>
+   <div class="shelf" id="shelf">🪴 🧸</div>
+   <div class="room-label" id="roomLabel">My Cozy Room</div>
+   <div class="pet-shadow"></div>
+   <div class="pet" id="pet">🐱</div>
+   <div class="pet-name" id="petName">Mochi</div>
+   <div class="pet-mood" id="mood">Waiting for cuddles ♡</div>
+   <div class="plant" id="plant">🌷</div>
+   <div class="room-floor" id="floor">🧸</div>
+  </div>
+  <div class="card xp-wrap">
+   <div class="xp-top"><span>✨ Best pet ever</span><span id="xpText">0 / 100 XP</span></div>
+   <div class="track"><div class="fill" id="xpBar"></div></div>
+  </div>
+  <div class="card" style="margin-top:15px">
+   <h3 class="section-title">💖 Pet care</h3>
+   <div class="stats">
+    <div class="stat"><div class="stat-top"><span>🍓 Hunger</span><span id="hungerNum">75%</span></div><div class="track"><div class="fill" id="hungerBar"></div></div></div>
+    <div class="stat"><div class="stat-top"><span>🫧 Clean</span><span id="cleanNum">75%</span></div><div class="track"><div class="fill" id="cleanBar"></div></div></div>
+    <div class="stat"><div class="stat-top"><span>🥰 Happy</span><span id="happyNum">80%</span></div><div class="track"><div class="fill" id="happyBar"></div></div></div>
+    <div class="stat"><div class="stat-top"><span>⚡ Energy</span><span id="energyNum">80%</span></div><div class="track"><div class="fill" id="energyBar"></div></div></div>
+   </div>
+   <div class="actions">
+    <button class="action feed" onclick="care('feed')"><span class="emoji">🍓</span>Feed · 5 🪙</button>
+    <button class="action bath" onclick="care('bath')"><span class="emoji">🛁</span>Bath · 5 🪙</button>
+    <button class="action play" onclick="care('play')"><span class="emoji">🧶</span>Play · free</button>
+    <button class="action sleep" onclick="care('sleep')"><span class="emoji">🌙</span>Sleep · free</button>
+   </div>
+  </div>
+ </section>
+
+ <section class="card">
+  <h2 class="section-title">🎀 Your little world</h2>
+  <div class="tabs">
+   <button class="tab active" onclick="showTab('dress',this)">👗 Dress</button>
+   <button class="tab" onclick="showTab('roomTab',this)">🏡 Room</button>
+   <button class="tab" onclick="showTab('shop',this)">🛍️ Shop</button>
+  </div>
+
+  <div class="panel active" id="dress">
+   <p style="font-size:12px;line-height:1.6;margin-top:0">Choose a cute accessory for your bestie! Some looks cost coins.</p>
+   <div class="items" id="dressItems"></div>
+   <button class="primary" onclick="wearSelected()">✨ Wear selected style</button>
+  </div>
+
+  <div class="panel" id="roomTab">
+   <p style="font-size:12px;line-height:1.6;margin-top:0">Make your pet's home extra cozy.</p>
+   <div class="items" id="roomItems"></div>
+   <button class="primary" onclick="decorateSelected()">🏡 Apply room style</button>
+  </div>
+
+  <div class="panel" id="shop">
+   <p style="font-size:12px;line-height:1.6;margin-top:0">Treats give your pet a boost. Buy them with your coins!</p>
+   <div class="items" id="shopItems"></div>
+  </div>
+
+  <div class="daily">
+   <div><strong>🎁 Daily love bonus</strong><br><span id="dailyText">Collect 25 coins today!</span></div>
+   <button id="dailyBtn" onclick="dailyBonus()">Collect +25</button>
+  </div>
+  <div class="notice" id="tip">🌷 <strong>Pet tip:</strong> A little care every day keeps Mochi happy. Earn XP by looking after your pet!</div>
+  <button class="secondary" style="width:100%;margin-top:12px" onclick="renamePet()">✏️ Change pet name</button>
+  <button class="secondary" style="width:100%;margin-top:8px" onclick="resetGame()">↻ Start a new game</button>
+ </section>
+</div>
+<footer>Made with ♡ for you and your fluffy friend · Petal Paws</footer>
+</div>
+<div id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const defaults = {
+ coins:100, level:1, xp:0,
+ hunger:75, clean:75, happy:80, energy:80,
+ name:"Mochi", outfit:"none", decor:"cozy",
+ ownedDress:["none"], ownedRoom:["cozy"], claimed:"",
+ lastCare:Date.now()
+};
+let game;
+try {
+ game = {...defaults,...JSON.parse(localStorage.getItem("petalPawsSave")||"{}")};
+} catch(e) { game={...defaults}; }
+
+const outfits=[
+ {id:"none",icon:"🐱",name:"Natural cutie",price:0},
+ {id:"bow",icon:"🎀",name:"Pink bow",price:0},
+ {id:"crown",icon:"👑",name:"Tiny crown",price:30},
+ {id:"glasses",icon:"🤓",name:"Cool glasses",price:35},
+ {id:"flower",icon:"🌸",name:"Flower crown",price:40},
+ {id:"hat",icon:"👒",name:"Sun hat",price:45}
+];
+const rooms=[
+ {id:"cozy",icon:"🧸",name:"Cozy room",price:0,color:"#ffe6f0",shelf:"🪴 🧸",plant:"🌷",floor:"🧸"},
+ {id:"mint",icon:"🌿",name:"Mint garden",price:35,color:"#dff8e9",shelf:"🪴 🌱",plant:"🌼",floor:"🍀"},
+ {id:"lavender",icon:"🦋",name:"Lavender dream",price:40,color:"#eee4ff",shelf:"🪻 🦋",plant:"💜",floor:"⭐"},
+ {id:"ocean",icon:"🐳",name:"Ocean calm",price:45,color:"#dff5ff",shelf:"🐚 🐠",plant:"🪸",floor:"🌊"}
+];
+const treats=[
+ {id:"berry",icon:"🍓",name:"Berry snack",price:5,stat:"hunger",amount:18},
+ {id:"cake",icon:"🧁",name:"Sweet cupcake",price:12,stat:"happy",amount:20},
+ {id:"soap",icon:"🧼",name:"Bubble soap",price:8,stat:"clean",amount:22},
+ {id:"juice",icon:"🧃",name:"Energy juice",price:10,stat:"energy",amount:22}
+];
+let selectedOutfit=game.outfit;
+let selectedRoom=game.decor;
+let toastTimer;
+
+function save(){
+ try{localStorage.setItem("petalPawsSave",JSON.stringify(game));}
+ catch(e){}
+}
+function toast(message){
+ $("toast").textContent=message;
+ $("toast").classList.add("show");
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>$("toast").classList.remove("show"),2200);
+}
+function clamp(n){return Math.max(0,Math.min(100,n));}
+function addXP(n){
+ game.xp+=n;
+ while(game.xp>=100){
+  game.xp-=100;game.level++;game.coins+=30;
+  toast("🎉 Level up! You're now level "+game.level+"! +30 coins");
+ }
+}
+function render(){
+ $("coins").textContent=game.coins;
+ $("level").textContent=game.level;
+ $("petName").textContent=game.name;
+ $("hungerNum").textContent=game.hunger+"%";
+ $("cleanNum").textContent=game.clean+"%";
+ $("happyNum").textContent=game.happy+"%";
+ $("energyNum").textContent=game.energy+"%";
+ ["hunger","clean","happy","energy"].forEach(k=>{
+  $(k+"Bar").style.width=game[k]+"%";
+ });
+ $("xpText").textContent=game.xp+" / 100 XP";
+ $("xpBar").style.width=game.xp+"%";
+ const low=Math.min(game.hunger,game.clean,game.happy,game.energy);
+ $("mood").textContent=low<25?"Needs a little love 🥺":game.happy>85?"Feeling super loved! 💕":"Waiting for cuddles ♡";
+ const outfit=outfits.find(o=>o.id===game.outfit)||outfits[0];
+ $("pet").textContent=game.outfit==="none"?"🐱":"🐱"+outfit.icon;
+ const room=rooms.find(r=>r.id===game.decor)||rooms[0];
+ $("room").style.background="linear-gradient("+room.color+" 0 60%,#edc8df 60% 64%,#f8d9bb 64%)";
+ $("roomLabel").textContent=room.name;
+ $("shelf").textContent=room.shelf;
+ $("plant").textContent=room.plant;
+ $("floor").textContent=room.floor;
+ const today=new Date().toDateString();
+ const claimed=game.claimed===today;
+ $("dailyBtn").disabled=claimed;
+ $("dailyBtn").textContent=claimed?"Collected ✓":"Collect +25";
+ $("dailyText").textContent=claimed?"Your daily love bonus is collected!":"Collect 25 coins today!";
+ save();
+}
+function showTab(id,button){
+ document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+ document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+ $(id).classList.add("active");button.classList.add("active");
+}
+function care(type){
+ if(type==="feed"||type==="bath"){
+  if(game.coins<5){toast("Not enough coins! Play to earn XP and level up.");return;}
+  game.coins-=5;
+ }
+ if(type==="feed"){
+  if(game.hunger===100){game.coins+=5;toast("Mochi is already full!");return;}
+  game.hunger=clamp(game.hunger+25);game.happy=clamp(game.happy+5);
+  toast("🍓 Yum! Mochi loves the snack!");
+ }
+ if(type==="bath"){
+  if(game.clean===100){game.coins+=5;toast("Mochi is already squeaky clean!");return;}
+  game.clean=clamp(game.clean+35);game.happy=clamp(game.happy+5);
+  toast("🫧 Bubbles everywhere! So fresh!");
+ }
+ if(type==="play"){
+  if(game.energy<12){toast("Mochi is tired. Let your pet sleep first!");return;}
+  game.happy=clamp(game.happy+20);game.energy=clamp(game.energy-12);
+  game.hunger=clamp(game.hunger-5);game.coins+=5;
+  toast("🧶 Playtime! +5 coins and happy vibes!");
+ }
+ if(type==="sleep"){
+  game.energy=clamp(game.energy+35);
+  game.happy=clamp(game.happy+5);
+  toast("🌙 Sweet dreams, little Mochi!");
+ }
+ addXP(10);
+ $("pet").classList.remove("happy");void $("pet").offsetWidth;$("pet").classList.add("happy");
+ render();
+}
+function drawItems(){
+ $("dressItems").innerHTML=outfits.map(o=>{
+  const owned=game.ownedDress.includes(o.id);
+  return `<button class="item ${selectedOutfit===o.id?"selected":""}" onclick="selectOutfit('${o.id}')">
+   <span class="big">${o.icon}</span><strong>${o.name}</strong>
+   <small>${owned?"Unlocked":o.price+" coins"}</small>
+   <span class="buy">${owned?(game.outfit===o.id?"Currently wearing":"Choose style"):"Tap to unlock"}</span>
+  </button>`;
+ }).join("");
+ $("roomItems").innerHTML=rooms.map(r=>{
+  const owned=game.ownedRoom.includes(r.id);
+  return `<button class="item ${selectedRoom===r.id?"selected":""}" onclick="selectRoom('${r.id}')">
+   <span class="big">${r.icon}</span><strong>${r.name}</strong>
+   <small>${owned?"Unlocked":r.price+" coins"}</small>
+   <span class="buy">${owned?(game.decor===r.id?"Current room":"Choose room"):"Tap to unlock"}</span>
+  </button>`;
+ }).join("");
+ $("shopItems").innerHTML=treats.map(t=>`
+  <button class="item" onclick="buyTreat('${t.id}')">
+   <span class="big">${t.icon}</span><strong>${t.name}</strong>
+   <small>Boost ${t.stat} by ${t.amount}</small>
+   <span class="buy">${t.price} coins · Buy</span>
+  </button>`).join("");
+}
+function selectOutfit(id){selectedOutfit=id;drawItems();}
+function selectRoom(id){selectedRoom=id;drawItems();}
+function wearSelected(){
+ const o=outfits.find(x=>x.id===selectedOutfit);
+ if(!o)return;
+ if(!game.ownedDress.includes(o.id)){
+  if(game.coins<o.price){toast("Keep earning coins for this style!");return;}
+  game.coins-=o.price;game.ownedDress.push(o.id);
+  toast("🎀 New style unlocked!");
+ }else toast("✨ Looking adorable!");
+ game.outfit=o.id;addXP(5);drawItems();render();
+}
+function decorateSelected(){
+ const r=rooms.find(x=>x.id===selectedRoom);
+ if(!r)return;
+ if(!game.ownedRoom.includes(r.id)){
+  if(game.coins<r.price){toast("Not enough coins for this room yet!");return;}
+  game.coins-=r.price;game.ownedRoom.push(r.id);
+  toast("🏡 New room unlocked!");
+ }else toast("🌷 Room refreshed!");
+ game.decor=r.id;addXP(5);drawItems();render();
+}
+function buyTreat(id){
+ const t=treats.find(x=>x.id===id);
+ if(game.coins<t.price){toast("Not enough coins yet!");return;}
+ if(game[t.stat]===100){toast("That stat is already full!");return;}
+ game.coins-=t.price;game[t.stat]=clamp(game[t.stat]+t.amount);
+ game.happy=clamp(game.happy+3);addXP(5);
+ toast(t.icon+" "+t.name+" purchased!");
+ render();
+}
+function dailyBonus(){
+ if(game.claimed===new Date().toDateString()){toast("Daily bonus already collected!");return;}
+ game.claimed=new Date().toDateString();game.coins+=25;addXP(5);
+ toast("🎁 +25 coins! Thanks for visiting!");
+ render();
+}
+function renamePet(){
+ const name=prompt("What should we call your pet?",game.name);
+ if(name&&name.trim()){
+  game.name=name.trim().slice(0,18);render();toast("💕 Hello, "+game.name+"!");
+ }
+}
+function resetGame(){
+ if(!confirm("Start fresh? This resets your pet, coins and unlocked items."))return;
+ game={...defaults,ownedDress:["none"],ownedRoom:["cozy"],lastCare:Date.now()};
+ selectedOutfit="none";selectedRoom="cozy";
+ drawItems();render();toast("🌸 A fresh new adventure begins!");
+}
+drawItems();render();
+
+// Gentle background needs: the pet slowly gets hungry and tired.
+// Progress is saved between visits; stats never go below zero.
+setInterval(()=>{
+ game.hunger=clamp(game.hunger-1);
+ game.energy=clamp(game.energy-1);
+ game.clean=clamp(game.clean-0.5);
+ render();
+},60000);
+</script>
+</body>
+</html>
